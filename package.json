@@ -1,0 +1,26 @@
+{
+  "name": "Pot's Translate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laurovitor/HerculesTranslations.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/laurovitor/HerculesTranslations/issues"
+  },
+  "homepage": "https://github.com/laurovitor/HerculesTranslations#readme",
+  "dependencies": {
+    "fs-extra": "^11.3.0",
+    "google-translate-api": "^2.3.0",
+    "google-translate-api-x": "^10.7.2",
+    "path": "^0.12.7"
+  }
+}
