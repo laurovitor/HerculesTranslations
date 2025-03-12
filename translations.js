@@ -17,13 +17,12 @@
 require('dotenv').config(); // Carrega variáveis de ambiente
 
 const fs = require("fs-extra");
-const path = require("path");
 const translate = require("google-translate-api-x");
-const HttpsProxyAgent = require('https-proxy-agent'); // Suporte a Proxy
+const { HttpsProxyAgent } = require('https-proxy-agent');
 
-// Configura idioma e fonte com base no .env, ou usa os valores padrão.
-const targetLang = process.env.TARGET_LANG || "pt"; // Tradução para português (Brasil)
-const sourceLang = process.env.SOURCE_LANG || "en"; // Idioma de origem
+const targetLang = process.env.TARGET_LANG || "pt";
+const sourceLang = process.env.SOURCE_LANG || "en";
+const proxyAgent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
 
 // Carrega os dicionários
 const wordsDictionary = fs.existsSync("dictionary_words.json")
@@ -202,11 +201,9 @@ async function translateText(text) {
     tempText = applyWordsDictionary(tempText);
 
     try {
-        // Configuração do proxy (se PROXY_URL estiver definido no .env)
-        let proxyAgent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
         let result = await translate(tempText, { 
-            from: process.env.SOURCE_LANG || sourceLang, 
-            to: process.env.TARGET_LANG || targetLang,
+            from: sourceLang, 
+            to: targetLang,
             agent: proxyAgent
         });
         let translatedText = result.text;

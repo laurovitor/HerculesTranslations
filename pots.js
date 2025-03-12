@@ -7,9 +7,12 @@
   - v1.0 - Inicio do projeto
 ============================================================*/
 
+require('dotenv').config();
 const fs = require("fs-extra");
 const path = require("path");
 const { translateText } = require("./translations");
+
+const setDelay = process.env.DELAY || 500;
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -29,7 +32,7 @@ async function translatePotFile(inputPath, outputPath) {
             let escapedOriginal = originalText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
             let msgstrRegex = new RegExp(`msgid\\s+"${escapedOriginal}"\\s*(?:.*\\n)*?msgstr\\s*""`, "g");
             content = content.replace(msgstrRegex, `msgid "${originalText}"\nmsgstr "${translatedText}"`);
-            await delay(500);
+            await delay(setDelay);
         }
         await fs.ensureDir(path.dirname(outputPath));
         await fs.writeFile(outputPath, content, "utf-8");
