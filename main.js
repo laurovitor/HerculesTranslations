@@ -5,14 +5,15 @@
   Description: Arquivo principal que inicia a tradução dos arquivos .pot.
   Changelog:
   - v1.0 - Inicio do projeto
-  -
 ============================================================*/
+
+require('dotenv').config();
 
 const path = require("path");
 const { processDirectory } = require("./pots");
 
-const baseDir = "./Hercules";
-const targetLang = "pt";
+const baseDir = process.env.BASE_DIR || "./Hercules";
+const targetLang = process.env.TARGET_LANG || "pt";
 
 const inputDirs = {
     pre: path.join(baseDir, "translations_pre"),

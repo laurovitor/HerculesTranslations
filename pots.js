@@ -5,7 +5,6 @@
   Description: Funções para processar e traduzir arquivos .pot.
   Changelog:
   - v1.0 - Inicio do projeto
-  -
 ============================================================*/
 
 const fs = require("fs-extra");

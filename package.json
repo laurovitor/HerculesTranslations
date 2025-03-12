@@ -18,9 +18,11 @@
   },
   "homepage": "https://github.com/laurovitor/HerculesTranslations#readme",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "fs-extra": "^11.3.0",
     "google-translate-api": "^2.3.0",
     "google-translate-api-x": "^10.7.2",
+    "https-proxy-agent": "^7.0.6",
     "path": "^0.12.7"
   }
 }
