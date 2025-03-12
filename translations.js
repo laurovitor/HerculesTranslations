@@ -171,28 +171,161 @@ function restoreCodes(text) {
     return text.replace(new RegExp(CODE_TOKEN, "g"), "\r");
 }
 
+async function saveUnchangedPhrase(original, translation) {
+    let unchangedPhrases = {};
+    try {
+        if (fs.existsSync("unchanged_phrases.json")) {
+            const fileContent = await fs.readFile("unchanged_phrases.json", "utf-8");
+            const parsed = JSON.parse(fileContent);
+            // Garante que seja um objeto; se não, inicia vazio.
+            unchangedPhrases = (typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+        }
+    } catch (err) {
+        console.error("Erro ao ler unchanged_phrases.json:", err);
+    }
+    unchangedPhrases[original] = translation;
+    await fs.writeFile("unchanged_phrases.json", JSON.stringify(unchangedPhrases, null, 2), "utf-8");
+}
+
+async function savePhraseToReview(original, translation) {
+    let phrasesToReview = {};
+    try {
+        if (fs.existsSync("phrases_to_review.json")) {
+            const fileContent = await fs.readFile("phrases_to_review.json", "utf-8");
+            const parsed = JSON.parse(fileContent);
+            // Garante que seja um objeto; se não, inicia vazio.
+            phrasesToReview = (typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+        }
+    } catch (err) {
+        console.error("Erro ao ler phrases_to_review.json:", err);
+    }
+    phrasesToReview[original] = translation;
+    await fs.writeFile("phrases_to_review.json", JSON.stringify(phrasesToReview, null, 2), "utf-8");
+}
+
 //==================== Função Principal de Tradução =====================
+
+// async function translateText(text) {
+//     console.log(`🔄 Traduzindo: "${text}"`);
+
+//     // Verifica cache: se já houver tradução, retorna imediatamente.
+//     if (translationCache[text]) {
+//         console.log(`✅ Tradução cache encontrada: "${text}" -> "${translationCache[text]}"`);
+//         return translationCache[text];
+//     }
+
+//     if (isBracketEnclosed(text)) {
+//         console.log(`✅ Texto entre colchetes, mantido sem tradução: "${text}"`);
+//         return text;
+//     }
+
+//     let manualTranslation = applyPhrasesDictionary(text);
+//     if (manualTranslation !== null) {
+//         console.log(`✅ Tradução manual encontrada: "${manualTranslation}"`);
+//         return manualTranslation;
+//     }
+
+//     let { text: dictProtectedText, dictTokens } = protectDictionaryWords(text);
+//     let { text: xmlProtectedText, xmlTags } = protectXmlTags(dictProtectedText);
+//     let { text: atProtectedText, atCommands } = protectAtCommands(xmlProtectedText);
+//     let { protectedText, placeholders } = protectPlaceholders(atProtectedText);
+//     let tempText = preserveCodes(protectedText);
+//     tempText = applyWordsDictionary(tempText);
+
+//     try {
+//         let result = await translate(tempText, { 
+//             from: sourceLang, 
+//             to: targetLang,
+//             agent: proxyAgent
+//         });
+//         let translatedText = result.text;
+//         translatedText = restoreCodes(translatedText);
+//         translatedText = restorePlaceholders(translatedText, placeholders);
+//         translatedText = restoreAtCommands(translatedText, atCommands);
+//         translatedText = restoreXmlTags(translatedText, xmlTags);
+//         translatedText = restoreDictionaryWords(translatedText, dictTokens);
+
+//         // Verificação final para substituição exata
+//         const exactDictValue = getExactWordsDictionary(text);
+//         if (exactDictValue !== null) {
+//             translatedText = exactDictValue;
+//         }
+
+//         console.log(`✅ Tradução concluída: "${translatedText}"`);
+
+//         // Salva a tradução no cache
+//         translationCache[text] = translatedText;
+//         await fs.writeFile("translation_cache.json", JSON.stringify(translationCache, null, 2), "utf-8");
+
+//         // Registra em unchanged_phrases.json se a tradução for idêntica à entrada
+//         if(text === translatedText) { 
+//             let unchangedPhrases = {};
+//             try {
+//                 if (fs.existsSync("unchanged_phrases.json")) {
+//                     const fileContent = await fs.readFile("unchanged_phrases.json", "utf-8");
+//                     const parsed = JSON.parse(fileContent);
+//                     // Garante que o conteúdo seja um objeto; caso contrário, inicia com objeto vazio.
+//                     unchangedPhrases = (typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+//                 }
+//             } catch (err) {
+//                 console.error("Erro ao ler unchanged_phrases.json:", err);
+//             }
+//             // Usa a mensagem original como chave e a tradução como valor
+//             unchangedPhrases[text] = translatedText;
+//             await fs.writeFile("unchanged_phrases.json", JSON.stringify(unchangedPhrases, null, 2), "utf-8");
+//         }
+
+//         // Registra em phrases_to_review.json se a frase contiver caracteres especiais.
+//         const specialCharRegex = /[^\p{L}\p{N}\s.,?!'":;()\-]/u;
+//         if (specialCharRegex.test(text)) {
+//             let phrasesToReview = {};
+//             try {
+//                 if (fs.existsSync("phrases_to_review.json")) {
+//                     const fileContent = await fs.readFile("phrases_to_review.json", "utf-8");
+//                     const parsed = JSON.parse(fileContent);
+//                     // Garante que o conteúdo seja um objeto; se não, inicia com objeto vazio.
+//                     phrasesToReview = (typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+//                 }
+//             } catch (err) {
+//                 console.error("Erro ao ler phrases_to_review.json:", err);
+//             }
+//             // Usa a mensagem original como chave e a tradução como valor.
+//             phrasesToReview[text] = translatedText;
+//             await fs.writeFile("phrases_to_review.json", JSON.stringify(phrasesToReview, null, 2), "utf-8");
+//         }
+
+//         return translatedText;
+//     } catch (error) {
+//         console.error(`❌ Erro ao traduzir: "${text}". ${error.message}`);
+//         // Registra erro completo no arquivo de log
+//         await fs.appendFile("translation_errors.log", `Erro ao traduzir: "${text}" - ${error.stack}\n`, "utf-8");
+//         return text;
+//     }
+// }
 
 async function translateText(text) {
     console.log(`🔄 Traduzindo: "${text}"`);
 
-    // Verifica cache: se já houver tradução, retorna imediatamente.
-    if (translationCache[text]) {
-        console.log(`✅ Cache hit: "${text}" -> "${translationCache[text]}"`);
-        return translationCache[text];
-    }
-
+    // Se o texto estiver entre colchetes, não traduz
     if (isBracketEnclosed(text)) {
         console.log(`✅ Texto entre colchetes, mantido sem tradução: "${text}"`);
         return text;
     }
 
+    // Verifica se há tradução manual no dicionário de frases
     let manualTranslation = applyPhrasesDictionary(text);
     if (manualTranslation !== null) {
         console.log(`✅ Tradução manual encontrada: "${manualTranslation}"`);
         return manualTranslation;
     }
 
+    // Verifica cache somente depois da tradução manual
+    if (translationCache[text]) {
+        console.log(`✅ Tradução cache encontrada: "${text}" -> "${translationCache[text]}"`);
+        return translationCache[text];
+    }
+
+    // Processa proteções e formata o texto
     let { text: dictProtectedText, dictTokens } = protectDictionaryWords(text);
     let { text: xmlProtectedText, xmlTags } = protectXmlTags(dictProtectedText);
     let { text: atProtectedText, atCommands } = protectAtCommands(xmlProtectedText);
@@ -225,34 +358,15 @@ async function translateText(text) {
         translationCache[text] = translatedText;
         await fs.writeFile("translation_cache.json", JSON.stringify(translationCache, null, 2), "utf-8");
 
-        // Registra em unchanged_phrases.json se a tradução for idêntica à entrada
-        if(text === translatedText) {
-            let unchangedPhrases = [];
-            try {
-                if (fs.existsSync("unchanged_phrases.json")) {
-                    unchangedPhrases = JSON.parse(await fs.readFile("unchanged_phrases.json", "utf-8"));
-                }
-            } catch (err) {
-                console.error("Erro ao ler unchanged_phrases.json:", err);
-            }
-            unchangedPhrases.push({ text, translation: translatedText });
-            await fs.writeFile("unchanged_phrases.json", JSON.stringify(unchangedPhrases, null, 2), "utf-8");
+        // Se a tradução for idêntica à entrada, salva em unchanged_phrases.json
+        if (text === translatedText) {
+            await saveUnchangedPhrase(text, translatedText);
         }
 
-        // Registra em phrases_to_review.json se a frase contiver caracteres especiais.
-        // Define caracteres especiais como quaisquer caracteres que não sejam letras, números, espaços ou pontuações comuns.
+        // Se o texto contiver caracteres especiais, salva em phrases_to_review.json
         const specialCharRegex = /[^\p{L}\p{N}\s.,?!'":;()\-]/u;
         if (specialCharRegex.test(text)) {
-            let phrasesToReview = [];
-            try {
-                if (fs.existsSync("phrases_to_review.json")) {
-                    phrasesToReview = JSON.parse(await fs.readFile("phrases_to_review.json", "utf-8"));
-                }
-            } catch (err) {
-                console.error("Erro ao ler phrases_to_review.json:", err);
-            }
-            phrasesToReview.push({ text, translation: translatedText });
-            await fs.writeFile("phrases_to_review.json", JSON.stringify(phrasesToReview, null, 2), "utf-8");
+            await savePhraseToReview(text, translatedText);
         }
 
         return translatedText;
